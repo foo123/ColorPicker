@@ -1,16 +1,26 @@
 /**
 *
 * Color Picker Widget
-*
+* https://github.com/foo123/colorpicker
 * adapted from: http://www.eyecon.ro/colorpicker/
 *      Color Picker by Stefan Petre www.eyecon.ro (MIT and GPL)
 */
-!function($, undef) {
+!function( root, name, factory ) {
+"use strict";
+if ( 'object' === typeof exports )
+    // CommonJS module
+    module.exports = factory( );
+else if ( 'function' === typeof define && define.amd )
+    // AMD. Register as an anonymous module.
+    define(function( req ) { return factory( ); });
+else
+    root[name] = factory( );
+}(this, 'ColorPicker', function( undef ) {
 "use strict";
 
 var Min = Math.min, Max = Math.max, Round = Math.round,
     is_array = $.isArray, extend = $.extend,
-    COMMAS = /\s*,\s*/g, __id = 0;
+    COMMAS = /\s*,\s*/g, __id = 0, $ = jQuery;
 
 function getViewport( ) 
 {
@@ -675,4 +685,5 @@ $.fn.ColorPicker = function( options ) {
     return return_value;
 };
 
-}(jQuery);
+return ColorPicker;
+});
