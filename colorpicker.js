@@ -375,19 +375,20 @@ function update_model( model, key )
 
 function update_ui( model, fields, all )
 {
-    var rgba_color = 'rgba('+model.rgb[0]+','+model.rgb[1]+','+model.rgb[2]+','+model.opacity+')',
-        hue_color = 'rgb('+hsb2rgb([model.hsb[0],100,100]).join(',')+')';
-    fields.hsb[0].val( model.hsb[0] );
-    fields.hsb[1].val( model.hsb[1] );
-    fields.hsb[2].val( model.hsb[2] );
-    fields.rgb[0].val( model.rgb[0] );
-    fields.rgb[1].val( model.rgb[1] );
-    fields.rgb[2].val( model.rgb[2] );
+    var rgb = model.rgb, hsb = model.hsb, opacity = model.opacity,
+        rgba_color = 'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+opacity+')',
+        hue_color = 'rgb('+hsb2rgb([hsb[0],100,100]).join(',')+')';
+    fields.hsb[0].val( hsb[0] );
+    fields.hsb[1].val( hsb[1] );
+    fields.hsb[2].val( hsb[2] );
+    fields.rgb[0].val( rgb[0] );
+    fields.rgb[1].val( rgb[1] );
+    fields.rgb[2].val( rgb[2] );
     fields.hex.val( model.hex );
     fields.hue[0].style.backgroundColor = hue_color;
-    fields.indic_sb[0].style.top = (150*(100-model.hsb[2])/100)+'px';
-    fields.indic_sb[0].style.left = (150*model.hsb[1]/100)+'px';
-    fields.indic_hue[0].style.top = (148-148*model.hsb[0]/360)+'px';
+    fields.indic_sb[0].style.top = (150*(100-hsb[2])/100)+'px';
+    fields.indic_sb[0].style.left = (150*hsb[1]/100)+'px';
+    fields.indic_hue[0].style.top = (148-148*hsb[0]/360)+'px';
     fields.color_new[0].style.backgroundColor = rgba_color;
     if ( all ) fields.color_current[0].style.backgroundColor = rgba_color;
 }
