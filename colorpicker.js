@@ -1,7 +1,7 @@
 /**
 * ColorPicker
 * https://github.com/foo123/ColorPicker
-* @version 2.0.0
+* @version 2.1.0
 *
 * adapted from:
 * http://www.eyecon.ro/colorpicker/
@@ -102,13 +102,13 @@ function removeClass( el, className )
 function addEvent( el, type, handler )
 {
     if ( el.attachEvent ) el.attachEvent( 'on'+type, handler );
-    else el.addEventListener( type, handler );
+    else el.addEventListener( type, handler, false );
 }
 function removeEvent( el, type, handler )
 {
     // if (el.removeEventListener) not working in IE11
     if ( el.detachEvent ) el.detachEvent( 'on'+type, handler );
-    else el.removeEventListener( type, handler );
+    else el.removeEventListener( type, handler, false );
 }
 function triggerEvent( el, type )
 {
@@ -556,17 +556,18 @@ function ColorPicker( el, options )
     
     hide_on_esc_key = function( ev ) {
         // ESC key pressed
-        if ( 27 === ev.keyCode ) hide( true );
+        if ( 27 === ev.keyCode ) return hide(true);
     };
     hide = function hide( ev ) {
         var target = true === ev ? true : ev.target || ev.srcElement;
         if ( hasClass(ui, 'colorpicker-visible') && 
-            ( true === target || (target !== el && !isChildOf(ui, target, ui)) ) 
+            ( (true === target) || (target !== el && !isChildOf(ui, target, ui)) ) 
         ) 
         {
             removeClass(ui,'colorpicker-visible');
             removeEvent(document, 'keyup', hide_on_esc_key);
             removeEvent(document, 'mousedown', hide);
+            removeEvent(document, 'touchstart', hide);
             options.onHide( self );
         }
     };
@@ -584,12 +585,14 @@ function ColorPicker( el, options )
             addClass(ui,'colorpicker-visible');
             addEvent(document, 'keyup', hide_on_esc_key);
             addEvent(document, 'mousedown', hide);
+            addEvent(document, 'touchstart', hide);
             options.onShow( self );
         }
         return false;
     };
     down_increment = function( ev ) {
         if ( bind_increment ) return;
+        ev.preventDefault();
         var target = ev.target || ev.srcElement,
             wrapper = target.parentNode,
             field = wrapper.children[0],
@@ -604,16 +607,20 @@ function ColorPicker( el, options )
             index: int(type.slice(-1)),
             max: type === 'hsb.0' ? 360 : ('hsb' === key ? 100 : 255),
             val: int(field.value),
-            y: ev.pageY
+            y: ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageY : ev.pageY
         };
         addClass(wrapper,'colorpicker_slider'); field.focus( );
         bind_increment = 1;
         addEvent(document, 'mouseup', up_increment);
         addEvent(document, 'mousemove', move_increment);
+        addEvent(document, 'touchend', up_increment);
+        addEvent(document, 'touchcancel', up_increment);
+        addEvent(document, 'touchmove', move_increment);
     };
     move_increment = function( ev ) {
-        var key = current.key, index = current.index;
-        model[key][index] = Max(0, Min(current.max, int(current.val + ev.pageY - current.y)));
+        ev.preventDefault();
+        var key = current.key, index = current.index, pageY = ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageY : ev.pageY;
+        model[key][index] = Max(0, Min(current.max, int(current.val + pageY - current.y)));
         if ( options.livePreview )
         {
             update_model( model, key );
@@ -622,8 +629,12 @@ function ColorPicker( el, options )
         return false;
     };
     up_increment = function( ev ) {
+        ev.preventDefault();
         removeEvent(document, 'mouseup', up_increment);
         removeEvent(document, 'mousemove', move_increment);
+        removeEvent(document, 'touchend', up_increment);
+        removeEvent(document, 'touchcancel', up_increment);
+        removeEvent(document, 'touchmove', move_increment);
         update_model( model, current.key );
         update_ui( model, fields );
         removeClass(current.el,'colorpicker_slider'); current.field.focus( );
@@ -632,14 +643,20 @@ function ColorPicker( el, options )
     };
     down_hue = function( ev ){
         if ( bind_hue ) return;
+        ev.preventDefault();
         var target = ev.target || ev.srcElement;
         current = { y: offset(target).top };
         bind_hue = 1;
         addEvent(document, 'mouseup', up_hue);
         addEvent(document, 'mousemove', move_hue);
+        addEvent(document, 'touchend', up_hue);
+        addEvent(document, 'touchcancel', up_hue);
+        addEvent(document, 'touchmove', move_hue);
     };
     move_hue = function( ev ) {
-        model.hsb[0] = Round(360*(148 - Max(0,Min(148,(ev.pageY - current.y))))/148);
+        ev.preventDefault();
+        var pageY = ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageY : ev.pageY;
+        model.hsb[0] = Round(360*(148 - Max(0,Min(148,(pageY - current.y))))/148);
         if ( options.livePreview )
         {
             update_model( model, 'hsb' );
@@ -648,8 +665,12 @@ function ColorPicker( el, options )
         return false;
     };
     up_hue = function( ev ) {
+        ev.preventDefault();
         removeEvent(document, 'mouseup', up_hue);
         removeEvent(document, 'mousemove', move_hue);
+        removeEvent(document, 'touchend', up_hue);
+        removeEvent(document, 'touchcancel', up_hue);
+        removeEvent(document, 'touchmove', move_hue);
         update_model( model, 'hsb' );
         update_ui( model, fields );
         bind_hue = 0; current = null;
@@ -657,15 +678,22 @@ function ColorPicker( el, options )
     };
     down_selector = function( ev ) {
         if ( bind_selector ) return;
+        ev.preventDefault();
         var target = (ev.target || ev.srcElement);
         current = offset( target );
         bind_selector = 1;
         addEvent(document, 'mouseup', up_selector);
         addEvent(document, 'mousemove', move_selector);
+        addEvent(document, 'touchend', up_selector);
+        addEvent(document, 'touchcancel', up_selector);
+        addEvent(document, 'touchmove', move_selector);
     };
     move_selector = function( ev ) {
-        model.hsb[1] = Round(100*(Max(0,Min(150,(ev.pageX - current.left))))/150);
-        model.hsb[2] = Round(100*(150 - Max(0,Min(150,(ev.pageY - current.top))))/150);
+        ev.preventDefault();
+        var pageX = ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageX : ev.pageX,
+            pageY = ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageY : ev.pageY;
+        model.hsb[1] = Round(100*(Max(0,Min(150,(pageX - current.left))))/150);
+        model.hsb[2] = Round(100*(150 - Max(0,Min(150,(pageY - current.top))))/150);
         if ( options.livePreview )
         {
             update_model( model, 'hsb' );
@@ -674,8 +702,12 @@ function ColorPicker( el, options )
         return false;
     };
     up_selector = function( ev ) {
+        ev.preventDefault();
         removeEvent(document, 'mouseup', up_selector);
         removeEvent(document, 'mousemove', move_selector);
+        removeEvent(document, 'touchend', up_selector);
+        removeEvent(document, 'touchcancel', up_selector);
+        removeEvent(document, 'touchmove', move_selector);
         update_model( model, 'hsb' );
         update_ui( model, fields );
         bind_selector = 0; current = null;
@@ -742,6 +774,9 @@ function ColorPicker( el, options )
     fields.indic_sb.style.left = '0px';
     fields.indic_sb.style.top = '0px';
     
+    live('colorpicker_satur_bright', 'touchstart', down_selector, ui);
+    live('colorpicker_hue', 'touchstart', down_hue, ui);
+    live('colorpicker_increment', 'touchstart', down_increment, ui);
     live('colorpicker_satur_bright', 'mousedown', down_selector, ui);
     live('colorpicker_hue', 'mousedown', down_hue, ui);
     live('colorpicker_increment', 'mousedown', down_increment, ui);
@@ -780,7 +815,7 @@ function ColorPicker( el, options )
     if ( hasClass(el,'colorpicker-transition-fade') ) addClass(ui,'colorpicker-transition-fade');
     if ( hasClass(el,'colorpicker-transition-slide') ) addClass(ui,'colorpicker-transition-slide');
 }
-ColorPicker.VERSION = '2.0.0';
+ColorPicker.VERSION = '2.1.0';
 
 return ColorPicker;
 });
