@@ -1,59 +1,59 @@
 /**
 * ColorPicker
 * https://github.com/foo123/ColorPicker
-* @version 2.1.0
+* @version 2.1.1
 *
 * adapted from:
 * http://www.eyecon.ro/colorpicker/
 *      Color Picker by Stefan Petre www.eyecon.ro (MIT and GPL)
 **/
-!function( root, name, factory ) {
+!function(root, name, factory) {
 "use strict";
-if ( 'object' === typeof exports )
+if ('object' === typeof exports)
     // CommonJS module
-    module.exports = factory( );
-else if ( 'function' === typeof define && define.amd )
+    module.exports = factory();
+else if ('function' === typeof define && define.amd)
     // AMD. Register as an anonymous module.
-    define(function( req ) { return factory( ); });
+    define(function(req) {return factory();});
 else
-    root[name] = factory( );
-}(this, 'ColorPicker', function( undef ) {
+    root[name] = factory();
+}('undefined' !== typeof self ? self : this, 'ColorPicker', function(undef) {
 "use strict";
 
-var HAS = 'hasOwnProperty', ATTR = 'getAttribute',
+var HAS = Object.prototype.hasOwnProperty, ATTR = 'getAttribute',
     SET_ATTR = 'setAttribute', DEL_ATTR = 'removeAttribute',
     toString = Object.prototype.toString,
     Min = Math.min, Max = Math.max, Round = Math.round,
     trim_re = /^\s+|\s+$/g,
     trim = String.prototype.trim
-        ? function( s ) { return s.trim(); }
-        : function( s ){ return s.replace(trim_re,''); }
+        ? function(s) {return s.trim();}
+        : function(s) {return s.replace(trim_re,'');}
     ,
     COMMAS = /\s*,\s*/g, ID = 0
 ;
 
 // helpers
-function is_array( o )
+function is_array(o)
 {
-    return (null != o) && ('[object Array]' === toString.call(o));
+    return '[object Array]' === toString.call(o);
 }
 
-function extend( o1, o2 )
+function extend(o1, o2)
 {
     for (var k in o2)
     {
-        if ( o2[HAS](k) )
+        if (HAS.call(o2,k))
             o1[k] = o2[k];
     }
     return o1;
 }
 
-function $id( id, ctx )
+function $id(id, ctx)
 {
-    return (ctx||document).getElementById( id );
+    return document.getElementById(id);
 }
 
-function getViewport( ) 
+function getViewport()
 {
     var m = document.compatMode == 'CSS1Compat';
     return {
@@ -64,157 +64,159 @@ function getViewport( )
     };
 }
 
-function isChildOf( parentEl, el, container ) 
+function isChildOf(parentEl, el, container)
 {
-    if ( parentEl === el ) return true;
-    if ( parentEl.contains ) return parentEl.contains( el );
-    if ( parentEl.compareDocumentPosition ) return !!(parentEl.compareDocumentPosition(el) & 16);
+    if (parentEl === el) return true;
+    if (parentEl.contains) return parentEl.contains(el);
+    if (parentEl.compareDocumentPosition) return !!(parentEl.compareDocumentPosition(el) & 16);
     var prEl = el.parentNode;
-    while ( prEl && prEl !== container ) 
+    while (prEl && prEl !== container)
     {
-        if ( prEl === parentEl ) return true;
+        if (prEl === parentEl) return true;
         prEl = prEl.parentNode;
     }
     return false;
 }
 
-function hasClass( el, className )
+function hasClass(el, className)
 {
     return el.classList
         ? el.classList.contains(className)
         : -1 !== (' ' + el.className + ' ').indexOf(' ' + className + ' ')
     ;
 }
-function addClass( el, className )
+function addClass(el, className)
 {
-    if ( !hasClass(el, className) )
+    if (!hasClass(el, className))
     {
-        if ( el.classList ) el.classList.add(className);
+        if (el.classList) el.classList.add(className);
         else el.className = '' === el.className ? className : el.className + ' ' + className;
     }
 }
-function removeClass( el, className )
+function removeClass(el, className)
 {
-    if ( el.classList ) el.classList.remove(className);
+    if (el.classList) el.classList.remove(className);
     else el.className = trim((' ' + el.className + ' ').replace(' ' + className + ' ', ' '));
 }
 
-function addEvent( el, type, handler )
+function addEvent(el, type, handler)
 {
-    if ( el.attachEvent ) el.attachEvent( 'on'+type, handler );
-    else el.addEventListener( type, handler, false );
+    if (el.attachEvent) el.attachEvent('on'+type, handler);
+    else el.addEventListener(type, handler, false);
 }
-function removeEvent( el, type, handler )
+function removeEvent(el, type, handler)
 {
     // if (el.removeEventListener) not working in IE11
-    if ( el.detachEvent ) el.detachEvent( 'on'+type, handler );
-    else el.removeEventListener( type, handler, false );
+    if (el.detachEvent) el.detachEvent('on'+type, handler);
+    else el.removeEventListener(type, handler, false);
 }
-function triggerEvent( el, type )
+function triggerEvent(el, type)
 {
     var ev;
-    if ( document.createEvent )
+    if (document.createEvent)
     {
         ev = document.createEvent('HTMLEvents');
         ev.initEvent(type, true, false);
         el.dispatchEvent(ev);
     }
-    else if ( document.createEventObject )
+    else if (document.createEventObject)
     {
         ev = document.createEventObject();
         el.fireEvent('on' + type, ev);
     }
 }
-function live( selector, event, cb, ctx )
+function live(selector, event, cb, ctx)
 {
-    addEvent(ctx||document, event, function( e ){
+    var handler = function(e) {
         var found = false, el = e.target || e.srcElement;
-        while ( el && !(found = hasClass(el,selector)) ) el = el.parentElement;
-        if ( found ) cb.call( el, e );
-    });
+        while (el && !(found = hasClass(el,selector))) el = el.parentElement;
+        if (found) cb.call(el, e);
+    };
+    addEvent(ctx||document, event, handler);
+    return handler;
 }
 
-function hex2rgb( hex ) 
+function hex2rgb(hex)
 {
     hex = parseInt( hex, 16 );
     return [((hex >> 16) & 255), ((hex >> 8) & 255), (hex & 255)];
 }
-function rgb2hsb( rgb ) 
+function rgb2hsb(rgb)
 {
     var h = 0, s = 0, b = 0,
         rr = rgb[0], rg = rgb[1], rb = rgb[2],
-        min = Min( rr, rg, rb ), max = Max( rr, rg, rb ),
+        min = Min(rr, rg, rb), max = Max(rr, rg, rb),
         delta = max - min
     ;
     b = max;
-    if ( max != 0 ) { }
+    if (max != 0) { }
     s = max != 0 ? 255 * delta / max : 0;
-    if ( s != 0 ) 
+    if (s != 0)
     {
-        if ( rr === max ) 
+        if (rr === max)
             h = (rg - rb) / delta;
-        else if ( rg === max ) 
+        else if (rg === max)
             h = 2 + (rb - rr) / delta;
-        else 
+        else
             h = 4 + (rr - rg) / delta;
-    } 
-    else 
+    }
+    else
     {
         h = -1;
     }
     h *= 60;
-    if ( h < 0 ) h += 360;
+    if (h < 0) h += 360;
     s *= 100/255;
     b *= 100/255;
     return [Round(h), Round(s), Round(b)];
 }
-function hsb2rgb( hsb ) 
+function hsb2rgb(hsb)
 {
     var r, g, b,
-        h = Round( hsb[0] ),
-        s = Round( hsb[1]*255/100 ),
-        v = Round( hsb[2]*255/100 )
+        h = Round(hsb[0]),
+        s = Round(hsb[1]*255/100),
+        v = Round(hsb[2]*255/100)
     ;
-    if ( s === 0 ) 
+    if (s === 0)
     {
         r = g = b = v;
-    } 
-    else 
+    }
+    else
     {
         var t1 = v,
             t2 = (255-s)*v/255,
             t3 = (t1-t2)*(h%60)/60
         ;
-        if ( h == 360 ) h = 0;
-        if ( h < 60 ) { r=t1; b=t2; g=t2+t3 }
-        else if ( h < 120 ) { g=t1; b=t2; r=t1-t3 }
-        else if ( h < 180 ) { g=t1; r=t2; b=t2+t3 }
-        else if ( h < 240 ) { b=t1; r=t2; g=t1-t3 }
-        else if ( h < 300 ) { b=t1; g=t2; r=t2+t3 }
-        else if ( h < 360 ) { r=t1; g=t2; b=t1-t3 }
+        if (h == 360) h = 0;
+        if (h < 60) { r=t1; b=t2; g=t2+t3 }
+        else if (h < 120) { g=t1; b=t2; r=t1-t3 }
+        else if (h < 180) { g=t1; r=t2; b=t2+t3 }
+        else if (h < 240) { b=t1; r=t2; g=t1-t3 }
+        else if (h < 300) { b=t1; g=t2; r=t2+t3 }
+        else if (h < 360) { r=t1; g=t2; b=t1-t3 }
         else { r=0; g=0; b=0 }
     }
     return [Round(r), Round(g), Round(b)];
 }
-function rgb2hex( rgb ) 
+function rgb2hex(rgb)
 {
     var hex = [
         rgb[0].toString(16),
         rgb[1].toString(16),
         rgb[2].toString(16)
     ];
-    if ( 1 === hex[0].length ) hex[0] = '0' + hex[0];
-    if ( 1 === hex[1].length ) hex[1] = '0' + hex[1];
-    if ( 1 === hex[2].length ) hex[2] = '0' + hex[2];
+    if (1 === hex[0].length) hex[0] = '0' + hex[0];
+    if (1 === hex[1].length) hex[1] = '0' + hex[1];
+    if (1 === hex[2].length) hex[2] = '0' + hex[2];
     return hex[0]+hex[1]+hex[2];
 }
-function fix_hex( hex ) 
+function fix_hex(hex)
 {
     hex = '#' === hex.charAt(0) ? hex.slice(1) : hex;
     var len = 6 - hex.length;
-    if ( len > 0 )
+    if (len > 0)
     {
-        if ( 3 === len )
+        if (3 === len)
             // shorthand notation
             hex = hex.charAt(0)+hex.charAt(0)+hex.charAt(1)+hex.charAt(1)+hex.charAt(2)+hex.charAt(2);
         else
@@ -222,44 +224,42 @@ function fix_hex( hex )
     }
     return hex;
 }
-function parse_hsl( hsl, is_hsla )
+function parse_hsl(hsl, is_hsla)
 {
-    if ( hsl.substr )
-        hsl = hsl.slice( is_hsla ? 5 : 4, -1 ).split( COMMAS );
+    if (hsl.substr)
+        hsl = hsl.slice(is_hsla ? 5 : 4, -1).split(COMMAS).map(trim);
     var opacity = is_hsla ? typecast.opacity(hsl[3]) : null;
     return [typecast.hsb[0](hsl[0]), typecast.hsb[1](hsl[1]), typecast.hsb[2](hsl[2]), opacity];
 }
-function parse_rgb( rgb, is_rgba )
+function parse_rgb(rgb, is_rgba)
 {
-    if ( rgb.substr )
-        rgb = rgb.slice( is_rgba ? 5 : 4, -1 ).split( COMMAS );
+    if (rgb.substr)
+        rgb = rgb.slice(is_rgba ? 5 : 4, -1).split(COMMAS).map(trim);
     var opacity = is_rgba ? typecast.opacity(rgb[3]) : null;
     return [typecast.rgb[0](rgb[0]), typecast.rgb[1](rgb[1]), typecast.rgb[2](rgb[2]), opacity];
 }
-function int( v )
+function int(v)
 {
-    return parseInt(v, 10);
+    return parseInt(v, 10) || 0;
 }
-function float( v )
+function float(v)
 {
-    return parseFloat(v, 10);
+    return parseFloat(v, 10) || 0;
 }
-function clamp( m, M, type )
+function clamp(m, M, type)
 {
     return 'function' === typeof type
-    ? function( x ) {
-        x = type( x );
+    ? function(x) {
+        x = type(x);
         return x > M ? M : (x < m ? m : x);
     }
-    : function( x ) {
+    : function(x) {
         return x > M ? M : (x < m ? m : x);
     };
 }
-function match( p )
+function match(p)
 {
-    return function( x ) {
-        return p.test( x );
-    };
+    return function(x) {return p.test(x);};
 }
 
 /*function parseHTML( html )
@@ -270,7 +270,7 @@ function match( p )
   return tmp.body.children;
 }*/
 
-function offset( el )
+function offset(el)
 {
     // http://stackoverflow.com/a/4689760/3591273
     var box = el.getBoundingClientRect(),
@@ -285,7 +285,7 @@ function offset( el )
     return {top: top, left: left, width: el.offsetWidth, height: el.offsetHeight };
 }
 
-function tpl( id ) 
+function tpl(id)
 {
     return '<div id="'+id+'" class="colorpicker">\
     <div id="'+id+'_satur_bright" class="colorpicker_satur_bright"><div id="'+id+'_satur_bright_indic"></div></div>\
@@ -342,41 +342,41 @@ var validate = {
 
 };
 
-function set( model, key, value )
+function set(model, key, value)
 {
     var ret = true, t, v, i, l;
-    if ( typecast[key] )
+    if (typecast[key])
     {
         t = typecast[key];
-        if ( is_array( t ) )
+        if (is_array(t))
         {
-            for(i=0,l=t.length; i<l; i++)
-                value[i] = t[i]( value[i] );
+            for (i=0,l=t.length; i<l; i++)
+                value[i] = t[i](value[i]);
         }
         else
         {
-            value = t( value );
+            value = t(value);
         }
     }
-    if ( validate[key] )
+    if (validate[key])
     {
         v = validate[key];
-        if ( is_array( v ) )
+        if (is_array(v))
         {
-            for(i=0,l=v.length; i<l; i++)
+            for (i=0,l=v.length; i<l; i++)
             {
-                if ( !v[i]( value[i] ) )
+                if (!v[i](value[i]))
                 {
                     ret = false;
                     break;
                 }
             }
         }
-        else if ( !v(value) )
+        else if (!v(value))
         {
             ret = false;
         }
-        if ( ret )
+        if (ret)
         {
             model[key] = value;
         }
@@ -384,69 +384,69 @@ function set( model, key, value )
     return ret;
 }
 
-function set_color( model, color, opacity )
+function set_color(model, color, opacity)
 {
     var c, ret = false;
-    
-    if ( null != opacity )
+
+    if (null != opacity)
     {
-        model.opacity = typecast.opacity( opacity );
+        model.opacity = typecast.opacity(opacity);
         ret = true;
     }
-    
-    if ( !!color )
+
+    if (!!color)
     {
-        if ( is_array( color ) )
+        if (is_array(color))
         {
-            if ( 3 < color.length )
+            if (3 < color.length)
             {
-                opacity = color[ 3 ];
+                opacity = color[3];
                 color = color.slice(0, 3);
             }
-            if ( set(model, 'rgb', color) )
+            if (set(model, 'rgb', color))
             {
-                if ( null != opacity ) model.opacity = typecast.opacity( opacity );
-                update_model( model, 'rgb' );
+                if (null != opacity) model.opacity = typecast.opacity(opacity);
+                update_model(model, 'rgb');
                 ret = true;
             }
         }
-        else if ( color.substr )
+        else if (color.substr)
         {
-            if ( 'rgba' === color.slice(0, 4) )
+            if ('rgba' === color.slice(0, 4))
             {
-                c = parse_rgb( color, true );
+                c = parse_rgb(color, true);
                 model.rgb = [c[0],c[1],c[2]];
-                model.opacity = typecast.opacity( c[ 3 ] );
-                update_model( model, 'rgb' );
+                model.opacity = typecast.opacity(c[ 3 ]);
+                update_model(model, 'rgb');
                 ret = true;
             }
-            else if ( 'rgb' === color.slice(0, 3) )
+            else if ('rgb' === color.slice(0, 3))
             {
-                c = parse_rgb( color );
+                c = parse_rgb(color);
                 model.rgb = [c[0],c[1],c[2]];
-                update_model( model, 'rgb' );
+                update_model(model, 'rgb');
                 ret = true;
             }
-            else if ( 'hsla' === color.slice(0, 4) )
+            else if ('hsla' === color.slice(0, 4))
             {
-                c = parse_hsl( color, true );
+                c = parse_hsl(color, true);
                 model.hsb = [c[0],c[1],c[2]];
-                model.opacity = typecast.opacity( c[ 3 ] );
-                update_model( model, 'hsb' );
+                model.opacity = typecast.opacity(c[ 3 ]);
+                update_model(model, 'hsb');
                 ret = true;
             }
-            else if ( 'hsl' === color.slice(0, 3) )
+            else if ('hsl' === color.slice(0, 3))
             {
-                c = parse_hsl( color );
+                c = parse_hsl(color);
                 model.hsb = [c[0],c[1],c[2]];
-                update_model( model, 'hsb' );
+                update_model(model, 'hsb');
                 ret = true;
             }
             else
             {
-                if ( set(model, 'hex', fix_hex( color )) )
+                if (set(model, 'hex', fix_hex( color )))
                 {
-                    update_model( model, 'hex' );
+                    update_model(model, 'hex');
                     ret = true;
                 }
             }
@@ -455,35 +455,35 @@ function set_color( model, color, opacity )
     return ret;
 }
 
-function get_color( model, format )
+function get_color(model, format)
 {
-    if ( 'rgba' === format ) return 'rgba('+model.rgb[0]+','+model.rgb[1]+','+model.rgb[2]+','+model.opacity+')';
-    else if ( 'rgb' === format ) return 'rgb('+model.rgb[0]+','+model.rgb[1]+','+model.rgb[2]+')';
-    else if ( 'hsla' === format ) return 'hsla('+model.hsb[0]+','+model.hsb[1]+'%,'+model.hsb[2]+'%,'+model.opacity+')';
-    else if ( 'hsl' === format ) return 'hsl('+model.hsb[0]+','+model.hsb[1]+'%,'+model.hsb[2]+'%)';
+    if ('rgba' === format) return 'rgba('+model.rgb[0]+','+model.rgb[1]+','+model.rgb[2]+','+model.opacity+')';
+    else if ('rgb' === format) return 'rgb('+model.rgb[0]+','+model.rgb[1]+','+model.rgb[2]+')';
+    else if ('hsla' === format) return 'hsla('+model.hsb[0]+','+model.hsb[1]+'%,'+model.hsb[2]+'%,'+model.opacity+')';
+    else if ('hsl' === format) return 'hsl('+model.hsb[0]+','+model.hsb[1]+'%,'+model.hsb[2]+'%)';
     return '#'+model.hex;
 }
 
-function update_model( model, key )
+function update_model(model, key)
 {
-    if ( 'hsb' === key )
+    if ('hsb' === key)
     {
-        model.rgb = hsb2rgb( model.hsb );
-        model.hex = rgb2hex( model.rgb )
+        model.rgb = hsb2rgb(model.hsb);
+        model.hex = rgb2hex(model.rgb)
     }
-    else if ( 'rgb' === key )
+    else if ('rgb' === key)
     {
-        model.hsb = rgb2hsb( model.rgb );
-        model.hex = rgb2hex( model.rgb )
+        model.hsb = rgb2hsb(model.rgb);
+        model.hex = rgb2hex(model.rgb)
     }
-    else if ( 'hex' === key )
+    else if ('hex' === key)
     {
-        model.rgb = hex2rgb( model.hex );
-        model.hsb = rgb2hsb( model.rgb );
+        model.rgb = hex2rgb(model.hex);
+        model.hsb = rgb2hsb(model.rgb);
     }
 }
 
-function update_ui( model, ui, all )
+function update_ui(model, ui, all)
 {
     var rgb = model.rgb, hsb = model.hsb, opacity = model.opacity, hex = model.hex,
         rgba_color = 'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+opacity+')',
@@ -500,30 +500,30 @@ function update_ui( model, ui, all )
     ui.indic_sb.style.left = (150*hsb[1]/100)+'px';
     ui.indic_hue.style.top = (148-148*hsb[0]/360)+'px';
     ui.color_new.style.backgroundColor = rgba_color;
-    if ( all ) ui.color_current.style.backgroundColor = rgba_color;
+    if (all) ui.color_current.style.backgroundColor = rgba_color;
 }
 
-function update_element( colorselector, input, color, trigger )
+function update_element(colorselector, input, color, trigger)
 {
     var is_input = colorselector === input;
-    if ( colorselector )
+    if (colorselector)
     {
         colorselector.selectedColor = color;
         colorselector.style.backgroundColor = color;
-        if ( is_input ) input.value = color;
-        if ( trigger ) triggerEvent( colorselector, trigger );
-        if ( is_input && 'change' !== trigger ) triggerEvent( input, 'change' );
+        if (is_input) input.value = color;
+        if (trigger) triggerEvent(colorselector, trigger);
+        if (is_input && 'change' !== trigger) triggerEvent(input, 'change');
     }
-    if ( input && !is_input )
+    if (input && !is_input)
     {
         input.value = color;
-        triggerEvent( input, 'change' );
+        triggerEvent(input, 'change');
     }
 }
 
-function dummy( ){ }
+function dummy() {}
 
-function defaults( options )
+function defaults(options)
 {
     return extend({
         input: null,
@@ -541,7 +541,7 @@ function defaults( options )
     }, options || {});
 }
 
-function ColorPicker( el, options )
+function ColorPicker(el, options)
 {
     var self = this, prev_color, id, ui,
         bind_increment = 0, down_increment, move_increment, up_increment,
@@ -549,49 +549,53 @@ function ColorPicker( el, options )
         bind_selector = 0, down_selector, move_selector, up_selector,
         show, hide, hide_on_esc_key,
         model, fields, format, colorChange,
-        colorselector = null, input = null, current = null
+        colorselector = null, input = null, current = null,
+        livehandlers = []
     ;
-    
-    if ( !(self instanceof ColorPicker) ) return new ColorPicker(el, options);
-    
-    hide_on_esc_key = function( ev ) {
+
+    if (!(self instanceof ColorPicker)) return new ColorPicker(el, options);
+
+    hide_on_esc_key = function(ev) {
         // ESC key pressed
-        if ( 27 === ev.keyCode ) return hide(true);
+        if (27 === ev.keyCode) return hide(true);
     };
-    hide = function hide( ev ) {
+    hide = function hide(ev) {
         var target = true === ev ? true : ev.target || ev.srcElement;
-        if ( hasClass(ui, 'colorpicker-visible') && 
-            ( (true === target) || (target !== el && !isChildOf(ui, target, ui)) ) 
-        ) 
+        if (
+            hasClass(ui, 'colorpicker-visible') &&
+            ((true === target) || (target !== el && !isChildOf(ui, target, ui)))
+        )
         {
             removeClass(ui,'colorpicker-visible');
             removeEvent(document, 'keyup', hide_on_esc_key);
             removeEvent(document, 'mousedown', hide);
             removeEvent(document, 'touchstart', hide);
-            options.onHide( self );
+            options.onHide(self);
         }
     };
-    show = function show( ev ) {
-        if ( !hasClass(ui,'colorpicker-visible') )
+    show = function show(ev) {
+        if (!hasClass(ui,'colorpicker-visible'))
         {
-            options.onBeforeShow( self );
-            var target = ev.target || ev.srcElement, pos = offset( target ), viewPort = getViewport( ), 
+            options.onBeforeShow(self);
+            var target = ev.target || ev.srcElement, pos = offset(target), viewPort = getViewport(),
                 top = pos.top + pos.height, left = pos.left
             ;
-            if ( top + 176 > viewPort.t + viewPort.h ) top -= pos.height + 176;
-            if ( left + 356 > viewPort.l + viewPort.w ) left -= 356;
+            if (top + 176 > viewPort.t + viewPort.h) top -= pos.height + 176;
+            if (top < viewPort.t) top += viewPort.t-top;
+            if (left + 356 > viewPort.l + viewPort.w) left -= 356;
+            if (left < viewPort.l) left += viewPort.l-left;
             ui.style.left = left+'px';
             ui.style.top = top+'px';
             addClass(ui,'colorpicker-visible');
             addEvent(document, 'keyup', hide_on_esc_key);
             addEvent(document, 'mousedown', hide);
             addEvent(document, 'touchstart', hide);
-            options.onShow( self );
+            options.onShow(self);
         }
         return false;
     };
-    down_increment = function( ev ) {
-        if ( bind_increment ) return;
+    down_increment = function(ev) {
+        if (bind_increment) return;
         ev.preventDefault();
         var target = ev.target || ev.srcElement,
             wrapper = target.parentNode,
@@ -609,7 +613,7 @@ function ColorPicker( el, options )
             val: int(field.value),
             y: ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageY : ev.pageY
         };
-        addClass(wrapper,'colorpicker_slider'); field.focus( );
+        addClass(wrapper,'colorpicker_slider'); field.focus();
         bind_increment = 1;
         addEvent(document, 'mouseup', up_increment);
         addEvent(document, 'mousemove', move_increment);
@@ -617,35 +621,35 @@ function ColorPicker( el, options )
         addEvent(document, 'touchcancel', up_increment);
         addEvent(document, 'touchmove', move_increment);
     };
-    move_increment = function( ev ) {
+    move_increment = function(ev) {
         ev.preventDefault();
         var key = current.key, index = current.index, pageY = ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageY : ev.pageY;
         model[key][index] = Max(0, Min(current.max, int(current.val + pageY - current.y)));
-        if ( options.livePreview )
+        if (options.livePreview)
         {
-            update_model( model, key );
-            update_ui( model, fields );
+            update_model(model, key);
+            update_ui(model, fields);
         }
         return false;
     };
-    up_increment = function( ev ) {
+    up_increment = function(ev) {
         ev.preventDefault();
         removeEvent(document, 'mouseup', up_increment);
         removeEvent(document, 'mousemove', move_increment);
         removeEvent(document, 'touchend', up_increment);
         removeEvent(document, 'touchcancel', up_increment);
         removeEvent(document, 'touchmove', move_increment);
-        update_model( model, current.key );
-        update_ui( model, fields );
+        update_model(model, current.key);
+        update_ui(model, fields);
         removeClass(current.el,'colorpicker_slider'); current.field.focus( );
         bind_increment = 0; current = null;
         return false;
     };
-    down_hue = function( ev ){
-        if ( bind_hue ) return;
+    down_hue = function(ev) {
+        if (bind_hue) return;
         ev.preventDefault();
         var target = ev.target || ev.srcElement;
-        current = { y: offset(target).top };
+        current = {y: offset(target).top};
         bind_hue = 1;
         addEvent(document, 'mouseup', up_hue);
         addEvent(document, 'mousemove', move_hue);
@@ -653,34 +657,34 @@ function ColorPicker( el, options )
         addEvent(document, 'touchcancel', up_hue);
         addEvent(document, 'touchmove', move_hue);
     };
-    move_hue = function( ev ) {
+    move_hue = function(ev) {
         ev.preventDefault();
         var pageY = ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageY : ev.pageY;
         model.hsb[0] = Round(360*(148 - Max(0,Min(148,(pageY - current.y))))/148);
-        if ( options.livePreview )
+        if (options.livePreview)
         {
-            update_model( model, 'hsb' );
-            update_ui( model, fields );
+            update_model(model, 'hsb');
+            update_ui(model, fields);
         }
         return false;
     };
-    up_hue = function( ev ) {
+    up_hue = function(ev) {
         ev.preventDefault();
         removeEvent(document, 'mouseup', up_hue);
         removeEvent(document, 'mousemove', move_hue);
         removeEvent(document, 'touchend', up_hue);
         removeEvent(document, 'touchcancel', up_hue);
         removeEvent(document, 'touchmove', move_hue);
-        update_model( model, 'hsb' );
-        update_ui( model, fields );
+        update_model(model, 'hsb');
+        update_ui(model, fields);
         bind_hue = 0; current = null;
         return false;
     };
-    down_selector = function( ev ) {
-        if ( bind_selector ) return;
+    down_selector = function(ev) {
+        if (bind_selector) return;
         ev.preventDefault();
         var target = (ev.target || ev.srcElement);
-        current = offset( target );
+        current = offset(target);
         bind_selector = 1;
         addEvent(document, 'mouseup', up_selector);
         addEvent(document, 'mousemove', move_selector);
@@ -688,78 +692,79 @@ function ColorPicker( el, options )
         addEvent(document, 'touchcancel', up_selector);
         addEvent(document, 'touchmove', move_selector);
     };
-    move_selector = function( ev ) {
+    move_selector = function(ev) {
         ev.preventDefault();
         var pageX = ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageX : ev.pageX,
             pageY = ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageY : ev.pageY;
         model.hsb[1] = Round(100*(Max(0,Min(150,(pageX - current.left))))/150);
         model.hsb[2] = Round(100*(150 - Max(0,Min(150,(pageY - current.top))))/150);
-        if ( options.livePreview )
+        if (options.livePreview)
         {
-            update_model( model, 'hsb' );
-            update_ui( model, fields );
+            update_model(model, 'hsb');
+            update_ui(model, fields);
         }
         return false;
     };
-    up_selector = function( ev ) {
+    up_selector = function(ev) {
         ev.preventDefault();
         removeEvent(document, 'mouseup', up_selector);
         removeEvent(document, 'mousemove', move_selector);
         removeEvent(document, 'touchend', up_selector);
         removeEvent(document, 'touchcancel', up_selector);
         removeEvent(document, 'touchmove', move_selector);
-        update_model( model, 'hsb' );
-        update_ui( model, fields );
+        update_model(model, 'hsb');
+        update_ui(model, fields);
         bind_selector = 0; current = null;
         return false;
     };
-    
-    self.dispose = function( ) {
+
+    self.dispose = function() {
         self.ui = null;
-        if ( !hasClass(ui,'colorpicker-flat') ) removeEvent(el, options.bindEvent, show);
-        ui.parentNode.removeChild( ui );
+        if (!hasClass(ui,'colorpicker-flat')) removeEvent(el, options.bindEvent, show);
+        for (var i=0; i<livehandlers.length; i++) removeEvent(ui, livehandlers[i].event, livehandlers[i].handler);
+        if (ui.parentNode) ui.parentNode.removeChild(ui);
     };
-    self.setColor = function( color, opacity ) {
-        if ( set_color( model, color, opacity ) )
-            update_ui( model, fields, true );
+    self.setColor = function(color, opacity) {
+        if (set_color(model, color, opacity))
+            update_ui(model, fields, true);
     };
-    self.getColor = function( fmt ) {
-        return get_color( model, fmt || format );
+    self.getColor = function(fmt) {
+        return get_color(model, fmt || format);
     };
-    self.value = function( color, opacity ) {
-        if ( arguments.length )
+    self.value = function(color, opacity) {
+        if (arguments.length)
         {
-            if ( set_color( model, color, opacity ) )
-                update_ui( model, fields, true );
+            if (set_color(model, color, opacity))
+                update_ui(model, fields, true);
         }
         else
         {
-            return get_color( model, format );
+            return get_color(model, format);
         }
     };
-    
-    options = defaults( options );
-    
+
+    options = defaults(options);
+
     format = el[ATTR]('data-color-format') || options.format || 'rgba';
     colorChange = el[ATTR]('data-color-change') || options.changeEvent;
     colorselector = !!el[ATTR]('data-color-selector') ? $id(el[ATTR]('data-color-selector')) : (options.selector || (hasClass(el,'colorpicker-selector') ? el : null));
     input = !!el[ATTR]('data-color-input') ? $id(el[ATTR]('data-color-input')) : (options.input || ('input' === (el.tagName||'').toLowerCase() ? el : null));
-    
+
     id = options.id || 'colorpicker_ui_' + (++ID);
-    
+
     var wrap = document.createElement('div');
-    wrap.innerHTML = tpl( id ); 
+    wrap.innerHTML = tpl(id);
     wrap.style.display = 'none';
-    document.body.appendChild( wrap );
-    ui = $id( id );
-    
+    document.body.appendChild(wrap);
+    ui = $id(id);
+
     model = {
      opacity: 1.0
     ,hsb: [0, 0, 0]
     ,rgb: [0, 0, 0]
     ,hex: '000000'
     };
-    
+
     fields = {
      hsb: [$id(id+'_hsb_0'),$id(id+'_hsb_1'),$id(id+'_hsb_2')]
     ,rgb: [$id(id+'_rgb_0'),$id(id+'_rgb_1'),$id(id+'_rgb_2')]
@@ -773,49 +778,49 @@ function ColorPicker( el, options )
     fields.indic_hue.style.top = '0px';
     fields.indic_sb.style.left = '0px';
     fields.indic_sb.style.top = '0px';
-    
-    live('colorpicker_satur_bright', 'touchstart', down_selector, ui);
-    live('colorpicker_hue', 'touchstart', down_hue, ui);
-    live('colorpicker_increment', 'touchstart', down_increment, ui);
-    live('colorpicker_satur_bright', 'mousedown', down_selector, ui);
-    live('colorpicker_hue', 'mousedown', down_hue, ui);
-    live('colorpicker_increment', 'mousedown', down_increment, ui);
-    live('colorpicker_save', 'click', function( ){
-        prev_color = model.rgb.slice( );
-        update_ui( model, fields, true );
-        if ( hide ) hide( true );
-        update_element( colorselector, input, get_color( model, format ), colorChange );
-    }, ui);
-    live('colorpicker_restore', 'click', function( ){
+
+    livehandlers.push({event:'touchstart', handler:live('colorpicker_satur_bright', 'touchstart', down_selector, ui)});
+    livehandlers.push({event:'touchstart', handler:live('colorpicker_hue', 'touchstart', down_hue, ui)});
+    livehandlers.push({event:'touchstart', handler:live('colorpicker_increment', 'touchstart', down_increment, ui)});
+    livehandlers.push({event:'mousedown', handler:live('colorpicker_satur_bright', 'mousedown', down_selector, ui)});
+    livehandlers.push({event:'mousedown', handler:live('colorpicker_hue', 'mousedown', down_hue, ui)});
+    livehandlers.push({event:'mousedown', handler:live('colorpicker_increment', 'mousedown', down_increment, ui)});
+    livehandlers.push({event:'click', handler:live('colorpicker_save', 'click', function() {
+        prev_color = model.rgb.slice();
+        update_ui(model, fields, true);
+        if (hide) hide(true);
+        update_element(colorselector, input, get_color( model, format ), colorChange);
+    }, ui)});
+    livehandlers.push({event:'click', handler:live('colorpicker_restore', 'click', function() {
         model.rgb = prev_color.slice();
-        update_model( model, 'rgb' );
-        update_ui( model, fields );
-    }, ui);
-    
+        update_model(model, 'rgb');
+        update_ui(model, fields);
+    }, ui)});
+
     self.ui = ui;
-    set_color( model, el[ATTR]('data-color') || options.color, el[ATTR]('data-opacity') || options.opacity );
-    prev_color = model.rgb.slice( );
-    update_ui( model, fields, true );
-    
-    if ( hasClass(el,'colorpicker-flat') ) 
+    set_color(model, el[ATTR]('data-color') || options.color, el[ATTR]('data-opacity') || options.opacity);
+    prev_color = model.rgb.slice();
+    update_ui(model, fields, true);
+
+    if (hasClass(el,'colorpicker-flat'))
     {
         addClass(ui,'colorpicker-flat'); ui.style.display = 'block';
-        el.appendChild( ui );
-    } 
-    else 
-    {
-        document.body.appendChild( ui );
-        addEvent(el, options.bindEvent, show);
-        update_element( colorselector, input, get_color( model, format ) );
+        el.appendChild(ui);
     }
-    document.body.removeChild( wrap ); wrap = null;
-    
-    if ( hasClass(el,'colorpicker-light') ) addClass(ui,'colorpicker-light');
-    if ( hasClass(el,'colorpicker-dark') ) addClass(ui,'colorpicker-dark');
-    if ( hasClass(el,'colorpicker-transition-fade') ) addClass(ui,'colorpicker-transition-fade');
-    if ( hasClass(el,'colorpicker-transition-slide') ) addClass(ui,'colorpicker-transition-slide');
+    else
+    {
+        document.body.appendChild(ui);
+        addEvent(el, options.bindEvent, show);
+        update_element(colorselector, input, get_color(model, format));
+    }
+    document.body.removeChild(wrap); wrap = null;
+
+    if (hasClass(el,'colorpicker-light')) addClass(ui,'colorpicker-light');
+    if (hasClass(el,'colorpicker-dark')) addClass(ui,'colorpicker-dark');
+    if (hasClass(el,'colorpicker-transition-fade')) addClass(ui,'colorpicker-transition-fade');
+    if (hasClass(el,'colorpicker-transition-slide')) addClass(ui,'colorpicker-transition-slide');
 }
-ColorPicker.VERSION = '2.1.0';
+ColorPicker.VERSION = '2.1.1';
 
 return ColorPicker;
 });

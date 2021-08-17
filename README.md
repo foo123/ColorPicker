@@ -1,4 +1,4 @@
-# colorpicker
+# ColorPicker
 
 
 **Color Picker Widget**
