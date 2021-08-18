@@ -48,7 +48,7 @@ function extend(o1, o2)
     return o1;
 }
 
-function $id(id, ctx)
+function $id(id)
 {
     return document.getElementById(id);
 }
@@ -57,8 +57,8 @@ function getViewport()
 {
     var m = document.compatMode == 'CSS1Compat';
     return {
-        l : window.pageXOffset || (m ? document.documentElement.scrollLeft : document.body.scrollLeft),
-        t : window.pageYOffset || (m ? document.documentElement.scrollTop : document.body.scrollTop),
+        l : window.pageXOffset || (m ? document.documentElement.scrollLeft : document.body.scrollLeft) || 0,
+        t : window.pageYOffset || (m ? document.documentElement.scrollTop : document.body.scrollTop) || 0,
         w : window.innerWidth || (m ? document.documentElement.clientWidth : document.body.clientWidth),
         h : window.innerHeight || (m ? document.documentElement.clientHeight : document.body.clientHeight)
     };
@@ -529,7 +529,7 @@ function defaults(options)
         input: null,
         selector: null,
         format: 'rgba',
-        color: 'ff0000',
+        color: 'ffffff',
         opacity: 1.0,
         changeEvent: 'colorchange',
         bindEvent: 'click',
@@ -581,9 +581,9 @@ function ColorPicker(el, options)
                 top = pos.top + pos.height, left = pos.left
             ;
             if (top + 176 > viewPort.t + viewPort.h) top -= pos.height + 176;
-            if (top < viewPort.t) top += viewPort.t-top;
+            if (top < viewPort.t) top = viewPort.t;
             if (left + 356 > viewPort.l + viewPort.w) left -= 356;
-            if (left < viewPort.l) left += viewPort.l-left;
+            if (left < viewPort.l) left = viewPort.l;
             ui.style.left = left+'px';
             ui.style.top = top+'px';
             addClass(ui,'colorpicker-visible');
@@ -721,7 +721,8 @@ function ColorPicker(el, options)
     self.dispose = function() {
         self.ui = null;
         if (!hasClass(ui,'colorpicker-flat')) removeEvent(el, options.bindEvent, show);
-        for (var i=0; i<livehandlers.length; i++) removeEvent(ui, livehandlers[i].event, livehandlers[i].handler);
+        for (var i=0; i<livehandlers.length; i++) removeEvent(livehandlers[i].el, livehandlers[i].event, livehandlers[i].handler);
+        livehandlers = [];
         if (ui.parentNode) ui.parentNode.removeChild(ui);
     };
     self.setColor = function(color, opacity) {
@@ -779,19 +780,19 @@ function ColorPicker(el, options)
     fields.indic_sb.style.left = '0px';
     fields.indic_sb.style.top = '0px';
 
-    livehandlers.push({event:'touchstart', handler:live('colorpicker_satur_bright', 'touchstart', down_selector, ui)});
-    livehandlers.push({event:'touchstart', handler:live('colorpicker_hue', 'touchstart', down_hue, ui)});
-    livehandlers.push({event:'touchstart', handler:live('colorpicker_increment', 'touchstart', down_increment, ui)});
-    livehandlers.push({event:'mousedown', handler:live('colorpicker_satur_bright', 'mousedown', down_selector, ui)});
-    livehandlers.push({event:'mousedown', handler:live('colorpicker_hue', 'mousedown', down_hue, ui)});
-    livehandlers.push({event:'mousedown', handler:live('colorpicker_increment', 'mousedown', down_increment, ui)});
-    livehandlers.push({event:'click', handler:live('colorpicker_save', 'click', function() {
+    livehandlers.push({el:ui, event:'touchstart', handler:live('colorpicker_satur_bright', 'touchstart', down_selector, ui)});
+    livehandlers.push({el:ui, event:'touchstart', handler:live('colorpicker_hue', 'touchstart', down_hue, ui)});
+    livehandlers.push({el:ui, event:'touchstart', handler:live('colorpicker_increment', 'touchstart', down_increment, ui)});
+    livehandlers.push({el:ui, event:'mousedown', handler:live('colorpicker_satur_bright', 'mousedown', down_selector, ui)});
+    livehandlers.push({el:ui, event:'mousedown', handler:live('colorpicker_hue', 'mousedown', down_hue, ui)});
+    livehandlers.push({el:ui, event:'mousedown', handler:live('colorpicker_increment', 'mousedown', down_increment, ui)});
+    livehandlers.push({el:ui, event:'click', handler:live('colorpicker_save', 'click', function() {
         prev_color = model.rgb.slice();
         update_ui(model, fields, true);
         if (hide) hide(true);
         update_element(colorselector, input, get_color( model, format ), colorChange);
     }, ui)});
-    livehandlers.push({event:'click', handler:live('colorpicker_restore', 'click', function() {
+    livehandlers.push({el:ui, event:'click', handler:live('colorpicker_restore', 'click', function() {
         model.rgb = prev_color.slice();
         update_model(model, 'rgb');
         update_ui(model, fields);
