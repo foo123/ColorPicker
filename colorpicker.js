@@ -588,9 +588,9 @@ function ColorPicker(el, options)
             var target = ev.target || ev.srcElement, pos = offset(target), viewPort = getViewport(),
                 top = pos.top + pos.height, left = pos.left
             ;
-            if (top + 176 > viewPort.t + viewPort.h) top -= pos.height + 176;
+            if (top + 185 > viewPort.t + viewPort.h) top -= pos.height + 185;
             if (top < viewPort.t) top = viewPort.t;
-            if (left + 356 > viewPort.l + viewPort.w) left -= 356;
+            if (left + 377 > viewPort.l + viewPort.w) left -= 377;
             if (left < viewPort.l) left = viewPort.l;
             ui.style.left = left+'px';
             ui.style.top = top+'px';
