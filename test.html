@@ -8,11 +8,19 @@
 <body>
 <input id="color_input" type="text" value="" />
 <div id="color_selector" class="colorpicker-selector"></div>
+<div style="padding-bottom:300px"></div>
+<input id="color_input2" type="text" value="" />
+<div id="color_selector2" class="colorpicker-selector colorpicker-dark"></div>
 <script type="text/javascript">
 setTimeout(function(){
 new ColorPicker(document.getElementById("color_selector"), {
     input: document.getElementById("color_input"),
     color: 'rgba(0, 255, 0, 0.6)',
+    format: 'rgba'
+});
+new ColorPicker(document.getElementById("color_selector2"), {
+    input: document.getElementById("color_input2"),
+    color: 'rgba(255, 0, 0, 0.6)',
     format: 'rgba'
 });
 }, 100);

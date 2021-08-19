@@ -1,7 +1,7 @@
 /**
 * ColorPicker
 * https://github.com/foo123/ColorPicker
-* @version 2.1.1
+* @version 2.2.0
 *
 * adapted from:
 * http://www.eyecon.ro/colorpicker/
@@ -23,7 +23,7 @@ else
 var HAS = Object.prototype.hasOwnProperty, ATTR = 'getAttribute',
     SET_ATTR = 'setAttribute', DEL_ATTR = 'removeAttribute',
     toString = Object.prototype.toString,
-    Min = Math.min, Max = Math.max, Round = Math.round,
+    Min = Math.min, Max = Math.max, Round = Math.round, Floor = Math.floor,
     trim_re = /^\s+|\s+$/g,
     trim = String.prototype.trim
         ? function(s) {return s.trim();}
@@ -289,39 +289,44 @@ function tpl(id)
 {
     return '<div id="'+id+'" class="colorpicker">\
     <div id="'+id+'_satur_bright" class="colorpicker_satur_bright"><div id="'+id+'_satur_bright_indic"></div></div>\
-    <div id="'+id+'_hue" class="colorpicker_hue"><div id="'+id+'_hue_indic"></div></div>\
+    <div id="'+id+'_hue" class="colorpicker_hue"><div id="'+id+'_hue_indic" class="colorpicker_indic"></div></div>\
+    <div id="'+id+'_opacitys" class="colorpicker_opacity"><div id="'+id+'_opacity_indic" class="colorpicker_indic"></div><div class="colorpicker_opacity_transparent"></div></div>\
     <div class="colorpicker_new_color colorpicker_transparent">\
     <button id="'+id+'_new_color" class="colorpicker_color colorpicker_save"></button>\
     </div>\
     <div class="colorpicker_current_color colorpicker_transparent">\
     <button id="'+id+'_current_color" class="colorpicker_color colorpicker_restore"></button>\
     </div>\
+    <div class="colorpicker_field" data-field="opacity">\
+    <input id="'+id+'_opacity" class="colorpicker_field_input" type="text" maxlength="3" size="3" value=""/><span class="colorpicker_increment"></span>\
+    <div class="colorpicker_field_back"></div>\
+    </div>\
     <div class="colorpicker_field" data-field="hex">\
-    <input id="'+id+'_hex" type="text" maxlength="6" size="6" value=""/>\
+    <input id="'+id+'_hex" class="colorpicker_field_input" type="text" maxlength="6" size="6" value=""/>\
     <div class="colorpicker_field_back"></div>\
     </div>\
     <div class="colorpicker_field" data-field="rgb.0">\
-    <input id="'+id+'_rgb_0" type="text" maxlength="3" size="3" value=""/><span class="colorpicker_increment"></span>\
+    <input id="'+id+'_rgb_0" class="colorpicker_field_input" type="text" maxlength="3" size="3" value=""/><span class="colorpicker_increment"></span>\
     <div class="colorpicker_field_back"></div>\
     </div>\
     <div class="colorpicker_field" data-field="rgb.1">\
-    <input id="'+id+'_rgb_1" type="text" maxlength="3" size="3" value=""/><span class="colorpicker_increment"></span>\
+    <input id="'+id+'_rgb_1" class="colorpicker_field_input" type="text" maxlength="3" size="3" value=""/><span class="colorpicker_increment"></span>\
     <div class="colorpicker_field_back"></div>\
     </div>\
     <div class="colorpicker_field" data-field="rgb.2">\
-    <input id="'+id+'_rgb_2" type="text" maxlength="3" size="3" value=""/><span class="colorpicker_increment"></span>\
+    <input id="'+id+'_rgb_2" class="colorpicker_field_input" type="text" maxlength="3" size="3" value=""/><span class="colorpicker_increment"></span>\
     <div class="colorpicker_field_back"></div>\
     </div>\
     <div class="colorpicker_field" data-field="hsb.0">\
-    <input id="'+id+'_hsb_0" type="text" maxlength="3" size="3" value=""/><span class="colorpicker_increment"></span>\
+    <input id="'+id+'_hsb_0" class="colorpicker_field_input" type="text" maxlength="3" size="3" value=""/><span class="colorpicker_increment"></span>\
     <div class="colorpicker_field_back"></div>\
     </div>\
     <div class="colorpicker_field" data-field="hsb.1">\
-    <input id="'+id+'_hsb_1" type="text" maxlength="3" size="3" value=""/><span class="colorpicker_increment"></span>\
+    <input id="'+id+'_hsb_1" class="colorpicker_field_input" type="text" maxlength="3" size="3" value=""/><span class="colorpicker_increment"></span>\
     <div class="colorpicker_field_back"></div>\
     </div>\
     <div class="colorpicker_field" data-field="hsb.2">\
-    <input id="'+id+'_hsb_2" type="text" maxlength="3" size="3" value=""/><span class="colorpicker_increment"></span>\
+    <input id="'+id+'_hsb_2" class="colorpicker_field_input" type="text" maxlength="3" size="3" value=""/><span class="colorpicker_increment"></span>\
     <div class="colorpicker_field_back"></div>\
     </div>\
     <button id="'+id+'_submit" class="colorpicker_submit colorpicker_save"></button>\
@@ -330,7 +335,7 @@ function tpl(id)
 
 var typecast = {
 
-'opacity': clamp(0.0, 1.0, float)
+'opacity': function(o){var o = Floor(float(o)*100)/100; return 0 > o ? 0 : (1 < o ? 1 : o);}
 ,'hsb': [clamp(0, 360, int), clamp(0, 100, int), clamp(0, 100, int)]
 ,'rgb': [clamp(0, 255, int), clamp(0, 255, int), clamp(0, 255, int)]
 
@@ -444,7 +449,7 @@ function set_color(model, color, opacity)
             }
             else
             {
-                if (set(model, 'hex', fix_hex( color )))
+                if (set(model, 'hex', fix_hex(color)))
                 {
                     update_model(model, 'hex');
                     ret = true;
@@ -488,6 +493,8 @@ function update_ui(model, ui, all)
     var rgb = model.rgb, hsb = model.hsb, opacity = model.opacity, hex = model.hex,
         rgba_color = 'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+opacity+')',
         hue_color = 'rgb('+hsb2rgb([hsb[0],100,100]).join(',')+')';
+    ui.opacity.value = Floor(100*opacity);
+    ui.indic_opac.style.top = String(Min(148, Max(0, 148-148*opacity)))+'px';
     ui.hsb[0].value = hsb[0];
     ui.hsb[1].value = hsb[1];
     ui.hsb[2].value = hsb[2];
@@ -496,9 +503,9 @@ function update_ui(model, ui, all)
     ui.rgb[2].value = rgb[2];
     ui.hex.value = hex;
     ui.hue.style.backgroundColor = hue_color;
-    ui.indic_sb.style.top = (150*(100-hsb[2])/100)+'px';
-    ui.indic_sb.style.left = (150*hsb[1]/100)+'px';
-    ui.indic_hue.style.top = (148-148*hsb[0]/360)+'px';
+    ui.indic_sb.style.top = String(150*(100-hsb[2])/100)+'px';
+    ui.indic_sb.style.left = String(150*hsb[1]/100)+'px';
+    ui.indic_hue.style.top = String(148-148*hsb[0]/360)+'px';
     ui.color_new.style.backgroundColor = rgba_color;
     if (all) ui.color_current.style.backgroundColor = rgba_color;
 }
@@ -546,6 +553,7 @@ function ColorPicker(el, options)
     var self = this, prev_color, id, ui,
         bind_increment = 0, down_increment, move_increment, up_increment,
         bind_hue = 0, down_hue, move_hue, up_hue,
+        bind_opac = 0, down_opac, move_opac, up_opac,
         bind_selector = 0, down_selector, move_selector, up_selector,
         show, hide, hide_on_esc_key,
         model, fields, format, colorChange,
@@ -601,15 +609,15 @@ function ColorPicker(el, options)
             wrapper = target.parentNode,
             field = wrapper.children[0],
             type = wrapper[ATTR]('data-field'),
-            key = type.slice(0, 3)
+            key = 'opacity' === type ? type : type.slice(0, 3)
         ;
         current = {
             el: wrapper,
             field: field,
             type: type,
             key: key,
-            index: int(type.slice(-1)),
-            max: type === 'hsb.0' ? 360 : ('hsb' === key ? 100 : 255),
+            index: 'opacity' === type ? null : int(type.slice(-1)),
+            max: 'opacity' === type ? 100 : ('hsb.0' === type ? 360 : ('hsb' === key ? 100 : 255)),
             val: int(field.value),
             y: ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageY : ev.pageY
         };
@@ -624,7 +632,8 @@ function ColorPicker(el, options)
     move_increment = function(ev) {
         ev.preventDefault();
         var key = current.key, index = current.index, pageY = ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageY : ev.pageY;
-        model[key][index] = Max(0, Min(current.max, int(current.val + pageY - current.y)));
+        if ('opacity' === key) model[key] = typecast[key](Max(0, Min(current.max, int(current.val + pageY - current.y)))/100);
+        else model[key][index] = Max(0, Min(current.max, int(current.val + pageY - current.y)));
         if (options.livePreview)
         {
             update_model(model, key);
@@ -641,7 +650,7 @@ function ColorPicker(el, options)
         removeEvent(document, 'touchmove', move_increment);
         update_model(model, current.key);
         update_ui(model, fields);
-        removeClass(current.el,'colorpicker_slider'); current.field.focus( );
+        removeClass(current.el,'colorpicker_slider'); current.field.focus();
         bind_increment = 0; current = null;
         return false;
     };
@@ -678,6 +687,40 @@ function ColorPicker(el, options)
         update_model(model, 'hsb');
         update_ui(model, fields);
         bind_hue = 0; current = null;
+        return false;
+    };
+    down_opac = function(ev) {
+        if (bind_opac) return;
+        ev.preventDefault();
+        var target = ev.target || ev.srcElement;
+        current = {y: offset(target).top};
+        bind_opac = 1;
+        addEvent(document, 'mouseup', up_opac);
+        addEvent(document, 'mousemove', move_opac);
+        addEvent(document, 'touchend', up_opac);
+        addEvent(document, 'touchcancel', up_opac);
+        addEvent(document, 'touchmove', move_opac);
+    };
+    move_opac = function(ev) {
+        ev.preventDefault();
+        var pageY = ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageY : ev.pageY;
+        model.opacity = typecast.opacity((148 - Max(0, Min(148, pageY - current.y)))/148);
+        if (options.livePreview)
+        {
+            update_ui(model, fields);
+        }
+        return false;
+    };
+    up_opac = function(ev) {
+        ev.preventDefault();
+        removeEvent(document, 'mouseup', up_opac);
+        removeEvent(document, 'mousemove', move_opac);
+        removeEvent(document, 'touchend', up_opac);
+        removeEvent(document, 'touchcancel', up_opac);
+        removeEvent(document, 'touchmove', move_opac);
+        update_model(model, 'opacity');
+        update_ui(model, fields);
+        bind_opac = 0; current = null;
         return false;
     };
     down_selector = function(ev) {
@@ -767,30 +810,51 @@ function ColorPicker(el, options)
     };
 
     fields = {
-     hsb: [$id(id+'_hsb_0'),$id(id+'_hsb_1'),$id(id+'_hsb_2')]
+     opacity: $id(id+'_opacity')
+    ,hsb: [$id(id+'_hsb_0'),$id(id+'_hsb_1'),$id(id+'_hsb_2')]
     ,rgb: [$id(id+'_rgb_0'),$id(id+'_rgb_1'),$id(id+'_rgb_2')]
     ,hex: $id(id+'_hex')
     ,hue: $id(id+'_satur_bright')
+    ,indic_opac: $id(id+'_opacity_indic')
     ,indic_hue: $id(id+'_hue_indic')
     ,indic_sb: $id(id+'_satur_bright_indic')
     ,color_new: $id(id+'_new_color')
     ,color_current: $id(id+'_current_color')
     };
+    fields.indic_opac.style.top = '0px';
     fields.indic_hue.style.top = '0px';
     fields.indic_sb.style.left = '0px';
     fields.indic_sb.style.top = '0px';
 
     livehandlers.push({el:ui, event:'touchstart', handler:live('colorpicker_satur_bright', 'touchstart', down_selector, ui)});
     livehandlers.push({el:ui, event:'touchstart', handler:live('colorpicker_hue', 'touchstart', down_hue, ui)});
+    livehandlers.push({el:ui, event:'touchstart', handler:live('colorpicker_opacity', 'touchstart', down_opac, ui)});
     livehandlers.push({el:ui, event:'touchstart', handler:live('colorpicker_increment', 'touchstart', down_increment, ui)});
     livehandlers.push({el:ui, event:'mousedown', handler:live('colorpicker_satur_bright', 'mousedown', down_selector, ui)});
     livehandlers.push({el:ui, event:'mousedown', handler:live('colorpicker_hue', 'mousedown', down_hue, ui)});
+    livehandlers.push({el:ui, event:'mousedown', handler:live('colorpicker_opacity', 'mousedown', down_opac, ui)});
     livehandlers.push({el:ui, event:'mousedown', handler:live('colorpicker_increment', 'mousedown', down_increment, ui)});
+    livehandlers.push({el:ui, event:'change', handler:live('colorpicker_field_input', 'change', function() {
+        var field = this,
+            wrapper = field.parentNode,
+            type = wrapper[ATTR]('data-field'),
+            key = 'opacity' === type || 'hex' === type ? type : type.slice(0, 3),
+            index = 'opacity' === type || 'hex' === type ? null : int(type.slice(-1))
+        ;
+        if ('opacity' === key) model[key] = typecast[key](int(field.value)/100);
+        else if ('hex' === key) set(model, 'hex', fix_hex(field.value));
+        else model[key][index] = typecast[key][index](field.value);
+        if (options.livePreview)
+        {
+            update_model(model, key);
+            update_ui(model, fields);
+        }
+    }, ui)});
     livehandlers.push({el:ui, event:'click', handler:live('colorpicker_save', 'click', function() {
         prev_color = model.rgb.slice();
         update_ui(model, fields, true);
         if (hide) hide(true);
-        update_element(colorselector, input, get_color( model, format ), colorChange);
+        update_element(colorselector, input, get_color(model, format), colorChange);
     }, ui)});
     livehandlers.push({el:ui, event:'click', handler:live('colorpicker_restore', 'click', function() {
         model.rgb = prev_color.slice();
@@ -821,7 +885,7 @@ function ColorPicker(el, options)
     if (hasClass(el,'colorpicker-transition-fade')) addClass(ui,'colorpicker-transition-fade');
     if (hasClass(el,'colorpicker-transition-slide')) addClass(ui,'colorpicker-transition-slide');
 }
-ColorPicker.VERSION = '2.1.1';
+ColorPicker.VERSION = '2.2.0';
 
 return ColorPicker;
 });

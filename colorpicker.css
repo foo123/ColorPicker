@@ -1,7 +1,7 @@
 /**
 * ColorPicker
 * https://github.com/foo123/ColorPicker
-* @version 2.1.0
+* @version 2.2.0
 *
 * adapted from:
 * http://www.eyecon.ro/colorpicker/
@@ -97,8 +97,8 @@
     border-color: transparent;
     border-radius: 4px;
     font-family: Arial, Helvetica, sans-serif;
-    width: 356px; height: 176px; 
-    max-height: 176px;
+    width: 377px; height: 185px;
+    max-height: 185px;
     display: none; opacity: 1;
 }
 .colorpicker.visible,
@@ -109,7 +109,7 @@
 .colorpicker.flat,
 .colorpicker.colorpicker-flat {
     position: relative;
-    max-height: 176px; opacity: 1;
+    max-height: 185px; opacity: 1;
     display: block !important;
     -webkit-transition: none !important;
     -moz-transition: none !important;
@@ -128,7 +128,7 @@
 }
 .colorpicker.visible.colorpicker-transition-fade,
 .colorpicker.colorpicker-visible.colorpicker-transition-fade {
-    max-height: 176px; opacity: 1;
+    max-height: 185px; opacity: 1;
     -webkit-transition: max-height 0s linear 0s, opacity 0.15s ease-out 0.05s;
     -moz-transition: max-height 0s linear 0s, opacity 0.15s ease-out 0.05s;
     -ms-transition: max-height 0s linear 0s, opacity 0.15s ease-out 0.05s;
@@ -146,7 +146,7 @@
 }
 .colorpicker.visible.colorpicker-transition-slide,
 .colorpicker.colorpicker-visible.colorpicker-transition-slide {
-    max-height: 176px;
+    max-height: 185px;
     -webkit-transition: max-height 0.15s ease;
     -moz-transition: max-height 0.15s ease;
     -ms-transition: max-height 0.15s ease;
@@ -163,8 +163,8 @@
     padding: 0; margin: 0;
     width: 150px;
     height: 150px;
-    left: 14px;
-    top: 13px;
+    left: 2px;
+    top: 3px;
     position: absolute;
     background-color: transparent;
     background-image: url(images/colorpicker_sprites.png);
@@ -203,13 +203,13 @@
     border: none;
     position: absolute; overflow: visible;
     padding: 0; margin: 0;
-    top: 11px; left: 178px;
+    top: 1px; left: 162px;
     width: 21px; height: 154px;
     cursor: n-resize;
     background: url(images/colorpicker_sprites.png) no-repeat right 0px;
     z-index: 1;
 }
-.colorpicker_hue div {
+.colorpicker_hue .colorpicker_indic {
     display: block;
     -webkit-box-sizing:border-box;
     -moz-box-sizing:border-box;
@@ -227,7 +227,7 @@
     pointer-events: none;
     color: inherit;
 }
-.colorpicker_hue div:before{
+.colorpicker_hue .colorpicker_indic:before{
     display:block; position: absolute;
     padding: 0; margin: 0;
     content: "\25ba";
@@ -235,12 +235,76 @@
     left: -9px; top: -4px;
     color: inherit;
 }
-.colorpicker_hue div:after{
+.colorpicker_hue .colorpicker_indic:after{
     display:block; position: absolute;
     padding: 0; margin: 0;
     content: "\25c0";
     text-shadow: 0px 0px 1px rgba(255,255,255,.5);
-    right: -9px; top: -4px;
+    right: -9px; top: -5px;
+    color: inherit;
+}
+.colorpicker_opacity {
+    display: block;
+    -webkit-box-sizing:border-box;
+    -moz-box-sizing:border-box;
+    -ms-box-sizing:border-box;
+    -o-box-sizing:border-box;
+    box-sizing:border-box;
+    border: 2px solid #666;
+    position: absolute; overflow: visible;
+    padding: 0; margin: 0;
+    top: 1px; left: 201px;
+    width: 21px; height: 154px;
+    cursor: n-resize;
+    background: transparent url(images/colorpicker_transparent.jpg) repeat 0 0;
+    z-index: 1;
+}
+.colorpicker_opacity .colorpicker_opacity_transparent {
+    display: block;
+    -webkit-box-sizing:border-box;
+    -moz-box-sizing:border-box;
+    -ms-box-sizing:border-box;
+    -o-box-sizing:border-box;
+    box-sizing:border-box;
+    position: absolute; overflow: hidden;
+    border: 0; padding: 0; margin: 0;
+    top: 0px; left: 0px;
+    width: 100%; height: 100%;
+    background-color: transparent;
+    background-image: linear-gradient(0deg, rgba(120,120,120,0) 0%, rgba(120,120,120,1) 100%);
+}
+.colorpicker_opacity .colorpicker_indic {
+    display: block;
+    -webkit-box-sizing:border-box;
+    -moz-box-sizing:border-box;
+    -ms-box-sizing:border-box;
+    -o-box-sizing:border-box;
+    box-sizing:border-box;
+    border: none;
+    position: absolute;
+    padding: 0;
+    font-size: 9px; color: #555;
+    width: 100%; height: 9px;
+    overflow: visible;
+    left: 0; margin: 0;
+    -webkit-pointer-events: none;
+    pointer-events: none;
+    color: inherit;
+}
+.colorpicker_opacity .colorpicker_indic:before{
+    display:block; position: absolute;
+    padding: 0; margin: 0;
+    content: "\25ba";
+    text-shadow: 0px 0px 1px rgba(255,255,255,.5);
+    left: -9px; top: -4px;
+    color: inherit;
+}
+.colorpicker_opacity .colorpicker_indic:after{
+    display:block; position: absolute;
+    padding: 0; margin: 0;
+    content: "\25c0";
+    text-shadow: 0px 0px 1px rgba(255,255,255,.5);
+    right: -9px; top: -5px;
     color: inherit;
 }
 .colorpicker_transparent {
@@ -266,8 +330,8 @@
     padding: 0; margin: 0;
     width: 60px;
     height: 30px;
-    left: 213px;
-    top: 13px;
+    left: 230px;
+    top: 3px;
     border: 2px solid #474747;
     border-radius: 2px;
     cursor: pointer;
@@ -277,8 +341,8 @@
     padding: 0; margin: 0;
     width: 60px;
     height: 30px;
-    left: 283px;
-    top: 13px;
+    left: 307px;
+    top: 3px;
     border: 2px solid #474747;
     border-radius: 2px;
     cursor: pointer;
@@ -290,8 +354,8 @@
     font-size: 10px;
     font-family: Arial, Helvetica, sans-serif;
     color: inherit;
-    top: 4px;
-    right: 11px;
+    top: 5px;
+    right: 13px;
     text-align: right;
     margin: 0;
     padding: 0;
@@ -340,11 +404,24 @@
     cursor: n-resize;
     z-index: 2;
 }
+[data-field="opacity"].colorpicker_field {
+    left: 232px;
+    top: 132px;
+}
+[data-field="opacity"].colorpicker_field > .colorpicker_field_back {
+    background-position: 0 -66px;
+}
+[data-field="opacity"].colorpicker_field > input:focus ~ .colorpicker_field_back {
+    background-position: 0 -88px;
+}
+[data-field="opacity"].colorpicker_field.colorpicker_slider > .colorpicker_field_back {
+    background-position: 0 -110px;
+}
 [data-field="hex"].colorpicker_field {
     width: 72px;
     height: 22px;
-    left: 212px;
-    top: 142px;
+    left: 300px;
+    top: 132px;
 }
 [data-field="hex"].colorpicker_field > input {
     right: 6px;
@@ -353,85 +430,85 @@
     background-position: -372px 0;
 }
 [data-field="hex"].colorpicker_field > input:focus ~ .colorpicker_field_back {
-    background-position: -372px center;
+    background-position: -372px -22px;
 }
 [data-field="rgb.0"].colorpicker_field {
-    top: 52px;
-    left: 212px;
+    top: 42px;
+    left: 232px;
 }
 [data-field="rgb.0"].colorpicker_field > .colorpicker_field_back {
     background-position: 0 0;
 }
 [data-field="rgb.0"].colorpicker_field > input:focus ~ .colorpicker_field_back {
-    background-position: 0 center;
+    background-position: 0 -22px;
 }
 [data-field="rgb.0"].colorpicker_field.colorpicker_slider > .colorpicker_field_back {
-    background-position: 0 bottom;
+    background-position: 0 -44px;
 }
 [data-field="rgb.1"].colorpicker_field {
-    top: 82px;
-    left: 212px;
+    top: 72px;
+    left: 232px;
 }
 [data-field="rgb.1"].colorpicker_field > .colorpicker_field_back {
     background-position: -62px 0;
 }
 [data-field="rgb.1"].colorpicker_field > input:focus ~ .colorpicker_field_back {
-    background-position: -62px center;
+    background-position: -62px -22px;
 }
 [data-field="rgb.1"].colorpicker_field.colorpicker_slider > .colorpicker_field_back {
-    background-position: -62px bottom;
+    background-position: -62px -44px;
 }
 [data-field="rgb.2"].colorpicker_field {
-    top: 112px;
-    left: 212px;
+    top: 102px;
+    left: 232px;
 }
 [data-field="rgb.2"].colorpicker_field > .colorpicker_field_back {
     background-position: -124px 0;
 }
 [data-field="rgb.2"].colorpicker_field > input:focus ~ .colorpicker_field_back {
-    background-position: -124px center;
+    background-position: -124px -22px;
 }
 [data-field="rgb.2"].colorpicker_field.colorpicker_slider > .colorpicker_field_back {
-    background-position: -124px bottom;
+    background-position: -124px -44px;
 }
 [data-field="hsb.0"].colorpicker_field {
-    top: 52px;
-    left: 282px;
+    top: 42px;
+    left: 309px;
 }
 [data-field="hsb.0"].colorpicker_field > .colorpicker_field_back {
     background-position: -186px 0;
 }
 [data-field="hsb.0"].colorpicker_field > input:focus ~ .colorpicker_field_back {
-    background-position: -186px center;
+    background-position: -186px -22px;
 }
 [data-field="hsb.0"].colorpicker_field.colorpicker_slider > .colorpicker_field_back {
-    background-position: -186px bottom;
+    background-position: -186px -44px;
 }
 [data-field="hsb.1"].colorpicker_field {
-    top: 82px;
-    left: 282px;
+    top: 72px;
+    left: 309px;
 }
 [data-field="hsb.1"].colorpicker_field > .colorpicker_field_back {
     background-position: -248px 0;
 }
 [data-field="hsb.1"].colorpicker_field > input:focus ~ .colorpicker_field_back {
-    background-position: -248px center;
+    background-position: -248px -22px;
 }
 [data-field="hsb.1"].colorpicker_field.colorpicker_slider > .colorpicker_field_back {
-    background-position: -248px bottom;
+    background-position: -248px -44px;
 }
 [data-field="hsb.2"].colorpicker_field {
-    top: 112px;
-    left: 282px;
+    top: 102px;
+    left: 309px;
 }
 [data-field="hsb.2"].colorpicker_field > .colorpicker_field_back {
     background-position: -310px 0;
 }
 [data-field="hsb.2"].colorpicker_field > input:focus ~ .colorpicker_field_back {
-    background-position: -310px center;
+    background-position: -310px -22px;
 }
 [data-field="hsb.2"].colorpicker_field.colorpicker_slider > .colorpicker_field_back {
-    background-position: -310px bottom;
+    background-position: -310px -44px;
 }
 .colorpicker_submit {
     position: absolute;
@@ -441,19 +518,19 @@
     background-color: transparent;
     background-position: top right;
     background-repeat: no-repeat;
-    left: 322px;
-    top: 142px;
+    left: 349px;
+    top: 157px;
     overflow: hidden;
     cursor: pointer;
 }
 .colorpicker_submit:focus,
 .colorpicker_submit:hover,
 .colorpicker_submit:active {
-    background-position: center right;
+    background-position: -22px right;
 }
 .colorpicker.colorpicker-light,
 .colorpicker{
-    background: #fff;
+    background: #fafafa;
     border-color: #adadad;
     color: #121212;
 }
@@ -464,7 +541,7 @@
     background-image: url(images/colorpicker_light_fields.png);
 }
 .colorpicker.colorpicker-dark {
-    background: #212121;
+    background: #343434;
     border-color: #454545;
     color: #efefef;
 }
