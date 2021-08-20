@@ -494,7 +494,7 @@ function update_ui(model, ui, all)
         rgba_color = 'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+opacity+')',
         hue_color = 'rgb('+hsb2rgb([hsb[0],100,100]).join(',')+')';
     ui.opacity.value = Floor(100*opacity);
-    ui.indic_opac.style.top = String(Min(148, Max(0, 148-148*opacity)))+'px';
+    ui.indic_opac.style.left = String(Min(150, Max(0, 150-150*opacity)))+'px';
     ui.hsb[0].value = hsb[0];
     ui.hsb[1].value = hsb[1];
     ui.hsb[2].value = hsb[2];
@@ -588,9 +588,9 @@ function ColorPicker(el, options)
             var target = ev.target || ev.srcElement, pos = offset(target), viewPort = getViewport(),
                 top = pos.top + pos.height, left = pos.left
             ;
-            if (top + 185 > viewPort.t + viewPort.h) top -= pos.height + 185;
+            if (top + ColorPicker.HEIGHT > viewPort.t + viewPort.h) top -= pos.height + ColorPicker.HEIGHT;
             if (top < viewPort.t) top = viewPort.t;
-            if (left + 377 > viewPort.l + viewPort.w) left -= 377;
+            if (left + ColorPicker.WIDTH > viewPort.l + viewPort.w) left -= ColorPicker.WIDTH;
             if (left < viewPort.l) left = viewPort.l;
             ui.style.left = left+'px';
             ui.style.top = top+'px';
@@ -693,7 +693,7 @@ function ColorPicker(el, options)
         if (bind_opac) return;
         ev.preventDefault();
         var target = ev.target || ev.srcElement;
-        current = {y: offset(target).top};
+        current = {x: offset(target).left};
         bind_opac = 1;
         addEvent(document, 'mouseup', up_opac);
         addEvent(document, 'mousemove', move_opac);
@@ -703,8 +703,8 @@ function ColorPicker(el, options)
     };
     move_opac = function(ev) {
         ev.preventDefault();
-        var pageY = ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageY : ev.pageY;
-        model.opacity = typecast.opacity((148 - Max(0, Min(148, pageY - current.y)))/148);
+        var pageX = ev.changedTouches && ev.changedTouches.length ? ev.changedTouches[0].pageX : ev.pageX;
+        model.opacity = typecast.opacity((150 - Max(0, Min(150, pageX - current.x)))/150);
         if (options.livePreview)
         {
             update_ui(model, fields);
@@ -821,7 +821,7 @@ function ColorPicker(el, options)
     ,color_new: $id(id+'_new_color')
     ,color_current: $id(id+'_current_color')
     };
-    fields.indic_opac.style.top = '0px';
+    fields.indic_opac.style.left = '0px';
     fields.indic_hue.style.top = '0px';
     fields.indic_sb.style.left = '0px';
     fields.indic_sb.style.top = '0px';
@@ -851,20 +851,21 @@ function ColorPicker(el, options)
         }
     }, ui)});
     livehandlers.push({el:ui, event:'click', handler:live('colorpicker_save', 'click', function() {
-        prev_color = model.rgb.slice();
+        prev_color = model.rgb.slice().concat(model.opacity);
         update_ui(model, fields, true);
         if (hide) hide(true);
         update_element(colorselector, input, get_color(model, format), colorChange);
     }, ui)});
     livehandlers.push({el:ui, event:'click', handler:live('colorpicker_restore', 'click', function() {
-        model.rgb = prev_color.slice();
+        model.rgb = prev_color.slice(0, 3);
+        model.opacity = prev_color[3];
         update_model(model, 'rgb');
         update_ui(model, fields);
     }, ui)});
 
     self.ui = ui;
     set_color(model, el[ATTR]('data-color') || options.color, el[ATTR]('data-opacity') || options.opacity);
-    prev_color = model.rgb.slice();
+    prev_color = model.rgb.slice().concat(model.opacity);
     update_ui(model, fields, true);
 
     if (hasClass(el,'colorpicker-flat'))
@@ -886,6 +887,7 @@ function ColorPicker(el, options)
     if (hasClass(el,'colorpicker-transition-slide')) addClass(ui,'colorpicker-transition-slide');
 }
 ColorPicker.VERSION = '2.2.0';
-
+ColorPicker.WIDTH = 343;
+ColorPicker.HEIGHT = 195;
 return ColorPicker;
 });
