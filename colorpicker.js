@@ -853,8 +853,9 @@ function ColorPicker(el, options)
     livehandlers.push({el:ui, event:'click', handler:live('colorpicker_save', 'click', function() {
         prev_color = model.rgb.slice().concat(model.opacity);
         update_ui(model, fields, true);
-        if (hide) hide(true);
         update_element(colorselector, input, get_color(model, format), colorChange);
+        options.onSelect(self);
+        if (hide) hide(true);
     }, ui)});
     livehandlers.push({el:ui, event:'click', handler:live('colorpicker_restore', 'click', function() {
         model.rgb = prev_color.slice(0, 3);
