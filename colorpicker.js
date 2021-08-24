@@ -1,7 +1,7 @@
 /**
 * ColorPicker
 * https://github.com/foo123/ColorPicker
-* @version 2.2.0
+* @version 2.2.1
 *
 * adapted from:
 * http://www.eyecon.ro/colorpicker/
@@ -556,7 +556,7 @@ function ColorPicker(el, options)
         bind_opac = 0, down_opac, move_opac, up_opac,
         bind_selector = 0, down_selector, move_selector, up_selector,
         show, hide, hide_on_esc_key,
-        model, fields, format, colorChange,
+        model, fields, format, colorChange, input_change,
         colorselector = null, input = null, current = null,
         livehandlers = []
     ;
@@ -571,7 +571,7 @@ function ColorPicker(el, options)
         var target = true === ev ? true : ev.target || ev.srcElement;
         if (
             hasClass(ui, 'colorpicker-visible') &&
-            ((true === target) || (target !== el && !isChildOf(ui, target, ui)))
+            ((true === target) || (target !== el && !isChildOf(ui, target, ui) && (input !== document.activeElement)))
         )
         {
             removeClass(ui,'colorpicker-visible');
@@ -760,6 +760,13 @@ function ColorPicker(el, options)
         bind_selector = 0; current = null;
         return false;
     };
+    input_change = function(ev) {
+        if (input && set_color(model, input.value))
+        {
+            update_ui(model, fields, true);
+            update_element(colorselector, null, get_color(model, format), colorChange);
+        }
+    };
 
     self.dispose = function() {
         self.ui = null;
@@ -767,6 +774,12 @@ function ColorPicker(el, options)
         for (var i=0; i<livehandlers.length; i++) removeEvent(livehandlers[i].el, livehandlers[i].event, livehandlers[i].handler);
         livehandlers = [];
         if (ui.parentNode) ui.parentNode.removeChild(ui);
+        if (input && (el !== input))
+        {
+            removeEvent(input, 'focus', show);
+            removeEvent(input, 'blur', hide);
+            removeEvent(input, 'change', input_change);
+        }
     };
     self.setColor = function(color, opacity) {
         if (set_color(model, color, opacity))
@@ -879,6 +892,12 @@ function ColorPicker(el, options)
         document.body.appendChild(ui);
         addEvent(el, options.bindEvent, show);
         update_element(colorselector, input, get_color(model, format));
+        if (input && (el !== input))
+        {
+            addEvent(input, 'focus', show);
+            addEvent(input, 'blur', hide);
+            addEvent(input, 'change', input_change);
+        }
     }
     document.body.removeChild(wrap); wrap = null;
 
@@ -887,7 +906,7 @@ function ColorPicker(el, options)
     if (hasClass(el,'colorpicker-transition-fade')) addClass(ui,'colorpicker-transition-fade');
     if (hasClass(el,'colorpicker-transition-slide')) addClass(ui,'colorpicker-transition-slide');
 }
-ColorPicker.VERSION = '2.2.0';
+ColorPicker.VERSION = '2.2.1';
 ColorPicker.WIDTH = 343;
 ColorPicker.HEIGHT = 195;
 return ColorPicker;
