@@ -66,13 +66,15 @@ function getViewport()
 
 function isChildOf(parentEl, el, container)
 {
+    if (!el) return false;
     if (parentEl === el) return true;
     if (parentEl.contains) return parentEl.contains(el);
     if (parentEl.compareDocumentPosition) return !!(parentEl.compareDocumentPosition(el) & 16);
     var prEl = el.parentNode;
-    while (prEl && prEl !== container)
+    while (prEl)
     {
         if (prEl === parentEl) return true;
+        if (prEl === container) break;
         prEl = prEl.parentNode;
     }
     return false;
@@ -110,18 +112,20 @@ function removeEvent(el, type, handler)
     if (el.detachEvent) el.detachEvent('on'+type, handler);
     else el.removeEventListener(type, handler, false);
 }
-function triggerEvent(el, type)
+function triggerEvent(el, type, data)
 {
     var ev;
     if (document.createEvent)
     {
         ev = document.createEvent('HTMLEvents');
         ev.initEvent(type, true, false);
+        if (null != data) ev.data = data;
         el.dispatchEvent(ev);
     }
     else if (document.createEventObject)
     {
         ev = document.createEventObject();
+        if (null != data) ev.data = data;
         el.fireEvent('on' + type, ev);
     }
 }
@@ -510,7 +514,7 @@ function update_ui(model, ui, all)
     if (all) ui.color_current.style.backgroundColor = rgba_color;
 }
 
-function update_element(colorselector, input, color, trigger)
+function update_element(instance, colorselector, input, color, trigger)
 {
     var is_input = colorselector === input;
     if (colorselector)
@@ -519,12 +523,12 @@ function update_element(colorselector, input, color, trigger)
         colorselector.style.backgroundColor = color;
         if (is_input) input.value = color;
         if (trigger) triggerEvent(colorselector, trigger);
-        if (is_input && 'change' !== trigger) triggerEvent(input, 'change');
+        if (is_input && 'change' !== trigger) triggerEvent(input, 'change', {firedBy:instance});
     }
     if (input && !is_input)
     {
         input.value = color;
-        triggerEvent(input, 'change');
+        triggerEvent(input, 'change', {firedBy:instance});
     }
 }
 
@@ -571,14 +575,24 @@ function ColorPicker(el, options)
         var target = true === ev ? true : ev.target || ev.srcElement;
         if (
             hasClass(ui, 'colorpicker-visible') &&
-            ((true === target) || (target !== el && !isChildOf(ui, target, ui) && (input !== document.activeElement)))
+            ((true === target) || (target !== el && !isChildOf(ui, target, ui)))
         )
         {
             removeClass(ui,'colorpicker-visible');
             removeEvent(document, 'keyup', hide_on_esc_key);
             removeEvent(document, 'mousedown', hide);
             removeEvent(document, 'touchstart', hide);
+            if (input && (el !== input))
+            {
+                removeEvent(input, 'blur', hide);
+                input.blur();
+            }
             options.onHide(self);
+        }
+        else if (hasClass(ui, 'colorpicker-visible'))
+        {
+            if (('mousedown' === ev.type || 'touchstart' === ev.type) && input && (el !== input))
+                removeEvent(input, 'blur', hide);
         }
     };
     show = function show(ev) {
@@ -592,12 +606,13 @@ function ColorPicker(el, options)
             if (top < viewPort.t) top = viewPort.t;
             if (left + ColorPicker.WIDTH > viewPort.l + viewPort.w) left -= ColorPicker.WIDTH;
             if (left < viewPort.l) left = viewPort.l;
-            ui.style.left = left+'px';
-            ui.style.top = top+'px';
+            ui.style.left = String(left)+'px';
+            ui.style.top = String(top)+'px';
             addClass(ui,'colorpicker-visible');
             addEvent(document, 'keyup', hide_on_esc_key);
             addEvent(document, 'mousedown', hide);
             addEvent(document, 'touchstart', hide);
+            if (input && (el !== input) && ('focus' === ev.type)) addEvent(input, 'blur', hide);
             options.onShow(self);
         }
         return false;
@@ -761,10 +776,10 @@ function ColorPicker(el, options)
         return false;
     };
     input_change = function(ev) {
-        if (input && set_color(model, input.value))
+        if (input && (!ev.data || self !== ev.data.firedBy) && set_color(model, input.value))
         {
             update_ui(model, fields, true);
-            update_element(colorselector, null, get_color(model, format), colorChange);
+            update_element(self, colorselector, null, get_color(model, format), colorChange);
         }
     };
 
@@ -866,7 +881,7 @@ function ColorPicker(el, options)
     livehandlers.push({el:ui, event:'click', handler:live('colorpicker_save', 'click', function() {
         prev_color = model.rgb.slice().concat(model.opacity);
         update_ui(model, fields, true);
-        update_element(colorselector, input, get_color(model, format), colorChange);
+        update_element(self, colorselector, input, get_color(model, format), colorChange);
         options.onSelect(self);
         if (hide) hide(true);
     }, ui)});
@@ -891,11 +906,10 @@ function ColorPicker(el, options)
     {
         document.body.appendChild(ui);
         addEvent(el, options.bindEvent, show);
-        update_element(colorselector, input, get_color(model, format));
+        update_element(self, colorselector, input, get_color(model, format));
         if (input && (el !== input))
         {
             addEvent(input, 'focus', show);
-            addEvent(input, 'blur', hide);
             addEvent(input, 'change', input_change);
         }
     }

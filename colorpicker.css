@@ -1,7 +1,7 @@
 /**
 * ColorPicker
 * https://github.com/foo123/ColorPicker
-* @version 2.2.0
+* @version 2.2.1
 *
 * adapted from:
 * http://www.eyecon.ro/colorpicker/
@@ -68,11 +68,15 @@
 .colorpicker-selector:hover {
     outline: 0 !important;
 }
+:focus > .colorpicker-selector:before,
+:focus + .colorpicker-selector:before,
 .colorpicker-selector:focus:before,
 .colorpicker-selector:active:before,
 .colorpicker-selector:hover:before {
     border-color: rgba(255, 255, 255, .5);
 }
+:focus > .colorpicker-selector:after,
+:focus + .colorpicker-selector:after,
 .colorpicker-selector:focus:after,
 .colorpicker-selector:active:after,
 .colorpicker-selector:hover:after {
