@@ -1,7 +1,7 @@
 /**
 * ColorPicker
 * https://github.com/foo123/ColorPicker
-* @version 2.2.1
+* @version 2.2.2
 *
 * adapted from:
 * http://www.eyecon.ro/colorpicker/
@@ -798,7 +798,10 @@ function ColorPicker(el, options)
     };
     self.setColor = function(color, opacity) {
         if (set_color(model, color, opacity))
+        {
             update_ui(model, fields, true);
+            update_element(self, colorselector, input, get_color(model, format), false);
+        }
     };
     self.getColor = function(fmt) {
         return get_color(model, fmt || format);
@@ -807,7 +810,10 @@ function ColorPicker(el, options)
         if (arguments.length)
         {
             if (set_color(model, color, opacity))
+            {
                 update_ui(model, fields, true);
+                update_element(self, colorselector, input, get_color(model, format), false);
+            }
         }
         else
         {
@@ -920,7 +926,7 @@ function ColorPicker(el, options)
     if (hasClass(el,'colorpicker-transition-fade')) addClass(ui,'colorpicker-transition-fade');
     if (hasClass(el,'colorpicker-transition-slide')) addClass(ui,'colorpicker-transition-slide');
 }
-ColorPicker.VERSION = '2.2.1';
+ColorPicker.VERSION = '2.2.2';
 ColorPicker.WIDTH = 343;
 ColorPicker.HEIGHT = 195;
 return ColorPicker;
